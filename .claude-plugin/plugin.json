@@ -1,0 +1,7 @@
+{
+  "name": "clickable-paths",
+  "version": "0.1.0",
+  "description": "Turns file paths in replies and tool rows into links that open the file in Explorer, Finder or the Linux file manager.",
+  "author": { "name": "alazc" },
+  "license": "MIT"
+}

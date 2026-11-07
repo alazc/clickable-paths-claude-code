@@ -1,0 +1,5 @@
+{
+  "name": "clickable-paths",
+  "owner": { "name": "alazc" },
+  "plugins": [{ "name": "clickable-paths", "source": "./" }]
+}
