@@ -4,5 +4,6 @@
   "description": "Turns file paths in replies and tool rows into links that open the file in Explorer, Finder or the Linux file manager.",
   "author": { "name": "alazc" },
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "types": "./types/index.d.ts"
 }

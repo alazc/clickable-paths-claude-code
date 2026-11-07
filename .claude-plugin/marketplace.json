@@ -1,5 +1,6 @@
 {
   "name": "clickable-paths",
+  "description": "A Claude Code mod that makes file paths in the transcript clickable and opens them in the system file browser.",
   "owner": { "name": "alazc" },
   "plugins": [{ "name": "clickable-paths", "source": "./" }]
 }
