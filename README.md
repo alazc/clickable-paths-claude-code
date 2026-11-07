@@ -16,18 +16,18 @@ The mod changes only what the transcript shows. The stored messages stay the sam
 At the prompt of a Claude Code terminal session, type:
 
 ```
-/plugin install clickable-paths --marketplace alazc/clickable-paths
+/plugin install clickable-paths --marketplace alazc/clickable-paths-claude-code
 ```
 
 From a shell:
 
 ```
-claude plugin install clickable-paths --marketplace alazc/clickable-paths
+claude plugin install clickable-paths --marketplace alazc/clickable-paths-claude-code
 ```
 
 Answer `y` to add the marketplace, then select a scope. The mod starts to work at once.
 
-In the desktop app, `/plugin` does not run. Click + next to the prompt box, then Plugins. Add the marketplace `alazc/clickable-paths`, then add the plugin.
+In the desktop app, `/plugin` does not run. Click + next to the prompt box, then Plugins. Add the marketplace `alazc/clickable-paths-claude-code`, then add the plugin.
 
 ## What gets linked
 
@@ -105,7 +105,7 @@ To try a change in a session, start Claude Code with the folder as a plugin fold
 claude --plugin-dir .
 ```
 
-Bug reports and pull requests are welcome in the [issues](https://github.com/alazc/clickable-paths/issues).
+Bug reports and pull requests are welcome in the [issues](https://github.com/alazc/clickable-paths-claude-code/issues).
 
 ## License
 
