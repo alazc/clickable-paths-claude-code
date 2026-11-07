@@ -4,12 +4,13 @@ clickable-paths is a Claude Code mod. It turns file paths in Claude's replies in
 
 The mod links these paths:
 
-- Absolute Windows paths, such as `C:\Users\me\out.png` or `C:/Users/me/out.png`.
+- Absolute Windows paths, such as `C:\Users\me\out.png` or `C:/Users/me/out.png`. The mod also finds paths with spaces, such as `C:\Program Files\app\log.txt`.
 - UNC paths (network share paths), such as `\\server\share\file.txt`.
 - Absolute POSIX paths, such as `/home/me/out.png`.
-- Relative paths with a file extension, such as `hooks/register.tsx:40`. The mod resolves these against the session's working directory.
+- Git Bash paths, such as `/c/Users/me/out.png`. In a Windows session, the mod changes these to `C:\Users\me\out.png`.
+- Relative paths with a file extension, such as `hooks/register.tsx:40` or `.\src\a.ts`. The mod resolves these against the folder where the session started.
 
-The mod does not change paths inside fenced code blocks, URLs or existing markdown links. Under each Write, Edit, Read and NotebookEdit tool row, the mod adds a "Show in folder" link to the file that the tool used.
+If the file or folder does not exist, the mod does not link the path. It cannot check UNC paths, so it links them without a check. The mod does not change paths inside fenced code blocks, URLs or existing markdown links. Under each Write, Edit and NotebookEdit tool row, the mod adds a "Show in folder" link to the file that the tool changed.
 
 The mod changes only what the transcript shows. The stored messages and what the model reads stay the same.
 
@@ -35,11 +36,15 @@ This repository is private. To install the mod, you must be able to read the rep
 
 ## Use
 
-- In the fullscreen terminal, click a link once.
-- In other terminals, ctrl+click the link.
-- To turn the links off or on, type `/clickable-paths`.
+In the fullscreen terminal and in the desktop app, click a link once. The file browser then opens with the file selected.
 
-If a reply holds a code fence, the mod adds the links but lets the other renderers draw the block. Diagram mods are an example of such renderers. In that case the terminal opens the link with its own behavior.
+In a terminal that is not fullscreen, the terminal handles a ctrl+click on the link, not the mod. The terminal opens the file with its default program, and the file browser does not open.
+
+To turn the links off or on, type `/clickable-paths`. The change shows at once and stays for later sessions.
+
+If a reply holds a code fence, a table or a GitHub alert, the mod adds the links. Then the other renderers draw the block, for example diagram mods. In that case the terminal opens the link with its own behavior.
+
+On the mobile app the mod does nothing. There, a click opens the file browser on your computer, not on the phone.
 
 ## Development
 
