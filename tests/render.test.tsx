@@ -1,6 +1,21 @@
 import { expect, test } from 'claude-code/testing'
 import type { On } from 'claude-code/testing'
 
+import { explorerArgv } from '../hooks/register'
+
+test('Explorer starts through Start-Process with a normal window, quotes escaped', async () => {
+  expect(explorerArgv("C:\\a b\\it's.txt", false)).toEqual([
+    'powershell.exe',
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    `Start-Process explorer.exe -ArgumentList '/select,"C:\\a b\\it''s.txt"' -WindowStyle Normal`,
+  ])
+  expect(explorerArgv('C:\\a', true)[4]).toBe(
+    `Start-Process explorer.exe -ArgumentList '"C:\\a"' -WindowStyle Normal`,
+  )
+})
+
 const REPLY = (text: string, surface: 'terminal' | 'mobile' = 'terminal') =>
   ({
     plugin: 'clickable-paths',
@@ -41,7 +56,7 @@ test('a click on a path in a reply opens Explorer with the file selected', async
   const ui = await $.ui.mount(REPLY('Wrote C:\\proj\\out.txt.'))
   await ui.press({ key: 'cp-msg-1', link: { href: 'file:///C:/proj/out.txt' } })
 
-  expect(ran).toEqual([['explorer.exe', '/select,C:\\proj\\out.txt']])
+  expect(ran).toEqual([explorerArgv('C:\\proj\\out.txt', false)])
   await ui.unmount()
 })
 
@@ -53,7 +68,7 @@ test('a click on a UNC path goes straight to Explorer', async ($, on) => {
   const ui = await $.ui.mount(REPLY('On \\\\srv\\share\\a.txt now'))
   await ui.press({ key: 'cp-msg-1', link: { href: 'file://srv/share/a.txt' } })
 
-  expect(ran).toEqual([['explorer.exe', '/select,\\\\srv\\share\\a.txt']])
+  expect(ran).toEqual([explorerArgv('\\\\srv\\share\\a.txt', false)])
   await ui.unmount()
 })
 
@@ -119,7 +134,7 @@ test('a Write row gets a Show in folder link; a Read row does not', async ($, on
 
   const write = await $.ui.mount(row('Write'))
   await write.press({ key: 'cp-tool-t-Write', link: { href: 'file:///C:/proj/a.txt' } })
-  expect(ran).toEqual([['explorer.exe', '/select,C:\\proj\\a.txt']])
+  expect(ran).toEqual([explorerArgv('C:\\proj\\a.txt', false)])
   await write.unmount()
 
   const read = await $.ui.mount(row('Read'))

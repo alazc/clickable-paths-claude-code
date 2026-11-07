@@ -36,9 +36,11 @@ This repository is private. To install the mod, you must be able to read the rep
 
 ## Use
 
-In the fullscreen terminal and in the desktop app, click a link once. The file browser then opens with the file selected.
+In the fullscreen terminal and in the desktop app, click a link once with no key held. A short message shows, and then the file browser opens with the file selected. On Windows this takes about half a second, because the mod starts Explorer through PowerShell. This gives the Explorer window a normal, visible style. Without it, Windows keeps the window hidden.
 
-In a terminal that is not fullscreen, the terminal handles a ctrl+click on the link, not the mod. The terminal opens the file with its default program, and the file browser does not open.
+Ctrl+click always goes to the terminal, not to the mod. In a terminal that is not fullscreen, the terminal also gets the plain click, because Claude Code gets mouse clicks only in fullscreen mode. In both cases the terminal opens the file with its default program, and the file browser does not open.
+
+> Warning: Do not ctrl+click a link to a script or a program file, such as `.bat`, `.cmd`, `.ps1` or `.exe`. The terminal gives the file to Windows, and Windows runs it.
 
 To turn the links off or on, type `/clickable-paths`. The change shows at once and stays for later sessions.
 

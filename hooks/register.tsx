@@ -55,12 +55,30 @@ async function link($: EngineInterface, text: string, cwd: string | undefined): 
   return linked
 }
 
+// Claude Code starts programs with a hidden window, and Explorer obeys that:
+// its window opens invisible. Start-Process with -WindowStyle Normal asks
+// for a visible one. A path holds no `"`; a `'` is doubled for PowerShell.
+export function explorerArgv(path: string, isDir: boolean): string[] {
+  const quoted = `"${path}"`.replace(/'/g, "''")
+  const args = isDir ? quoted : `/select,${quoted}`
+  return [
+    'powershell.exe',
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    `Start-Process explorer.exe -ArgumentList '${args}' -WindowStyle Normal`,
+  ]
+}
+
 // Opens the system file browser with the path selected (a folder: opened).
 async function reveal($: EngineInterface, href: string): Promise<void> {
   const path = fromHref(href)
+  // Says the click reached the mod: a file that opens with no such message
+  // was opened by the terminal itself.
+  $.ui.toast(`Showing ${path.split(/[\\/]/).pop() || path} in the file browser`)
   try {
     if (isUnc(path)) {
-      await $.process.run(['explorer.exe', `/select,${path}`])
+      await $.process.run(explorerArgv(path, false))
       return
     }
     if (!(await $.fs.exists(path))) {
@@ -70,8 +88,7 @@ async function reveal($: EngineInterface, href: string): Promise<void> {
     const isDir = (await $.fs.stat(path)).kind === 'dir'
 
     if (isWindowsPath(path)) {
-      // explorer.exe exits 1 on success, so its exit code says nothing.
-      await $.process.run(isDir ? ['explorer.exe', path] : ['explorer.exe', `/select,${path}`])
+      await $.process.run(explorerArgv(path, isDir))
       return
     }
     try {
