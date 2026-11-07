@@ -57,28 +57,51 @@ async function link($: EngineInterface, text: string, cwd: string | undefined): 
 
 // Claude Code starts programs with a hidden window, and Explorer obeys that:
 // its window opens invisible. Start-Process with -WindowStyle Normal asks
-// for a visible one. A path holds no `"`; a `'` is doubled for PowerShell.
-export function explorerArgv(path: string, isDir: boolean): string[] {
-  const quoted = `"${path}"`.replace(/'/g, "''")
-  const args = isDir ? quoted : `/select,${quoted}`
-  return [
-    'powershell.exe',
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    `Start-Process explorer.exe -ArgumentList '${args}' -WindowStyle Normal`,
-  ]
+// for a visible one.
+//
+// The path never enters the PowerShell source: the script is a constant and
+// reads the path from an environment variable, as data. (Quoting it into the
+// script is not safe: PowerShell also takes the curly quotes as quotes.)
+const EXPLORER_SCRIPT = [
+  '$p = $env:CLICKABLE_PATHS_TARGET',
+  "$a = if ($env:CLICKABLE_PATHS_SELECT -eq '1') { '/select,\"' + $p + '\"' } else { '\"' + $p + '\"' }",
+  'Start-Process explorer.exe -ArgumentList $a -WindowStyle Normal -ErrorAction Stop',
+].join('; ')
+
+export type Launch = { argv: string[]; env: Record<string, string> }
+
+export function explorerLaunch(path: string, isDir: boolean): Launch {
+  // A backslash before the closing quote would escape it: drop trailing
+  // separators, and give a drive root ("C:") two backslashes.
+  let target = path.replace(/[\\/]+$/, '')
+  if (/^[A-Za-z]:$/.test(target)) target += '\\\\'
+  return {
+    argv: ['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', EXPLORER_SCRIPT],
+    env: { CLICKABLE_PATHS_TARGET: target, CLICKABLE_PATHS_SELECT: isDir ? '0' : '1' },
+  }
+}
+
+async function runExplorer($: EngineInterface, path: string, isDir: boolean): Promise<boolean> {
+  const { argv, env } = explorerLaunch(path, isDir)
+  const ran = await $.process.run(argv, { env })
+  return ran.exitCode === 0
+}
+
+function opening($: EngineInterface, path: string): void {
+  $.ui.toast(`Opening ${path.split(/[\\/]/).filter(Boolean).pop() || path} in the file browser`)
 }
 
 // Opens the system file browser with the path selected (a folder: opened).
 async function reveal($: EngineInterface, href: string): Promise<void> {
   const path = fromHref(href)
-  // Says the click reached the mod: a file that opens with no such message
-  // was opened by the terminal itself.
-  $.ui.toast(`Showing ${path.split(/[\\/]/).pop() || path} in the file browser`)
+  const failed = () => $.ui.toast(`Could not open a file browser for ${path}`)
+  // The "Opening" message also says the click reached the mod: a file that
+  // opens with no such message was opened by the terminal itself.
   try {
     if (isUnc(path)) {
-      await $.process.run(explorerArgv(path, false))
+      // A network path cannot be checked: Explorer is asked as for a file.
+      opening($, path)
+      if (!(await runExplorer($, path, false))) failed()
       return
     }
     if (!(await $.fs.exists(path))) {
@@ -86,9 +109,10 @@ async function reveal($: EngineInterface, href: string): Promise<void> {
       return
     }
     const isDir = (await $.fs.stat(path)).kind === 'dir'
+    opening($, path)
 
     if (isWindowsPath(path)) {
-      await $.process.run(explorerArgv(path, isDir))
+      if (!(await runExplorer($, path, isDir))) failed()
       return
     }
     try {
@@ -98,9 +122,10 @@ async function reveal($: EngineInterface, href: string): Promise<void> {
       // No `open`: not macOS. Go on to xdg-open.
     }
     const dir = isDir ? path : path.replace(/\/[^/]*$/, '') || '/'
-    await $.process.run(['xdg-open', dir])
+    const xdg = await $.process.run(['xdg-open', dir])
+    if (xdg.exitCode !== 0) failed()
   } catch {
-    $.ui.toast(`Could not open a file browser for ${path}`)
+    failed()
   }
 }
 
